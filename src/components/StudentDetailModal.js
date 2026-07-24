@@ -21,10 +21,7 @@ export default function StudentDetailModal({ studentId, onClose, onChanged, onEd
       .catch((err) => setError(err.message));
   }
 
-  useEffect(() => {
-    load();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [studentId]);
+
 
   async function addPayment(e) {
     e.preventDefault();
