@@ -214,7 +214,7 @@ export default function Payments() {
                     </td>
                     <td><StatusPill status={r.paymentStatus} /></td>
                     <td className="actions-cell">
-                      <button className="link-btn" onClick={() => openRecord(r)}>Manage</button>
+                      <button className="link-btn" onClick={() => openRecord(r)}>Update</button>
                     </td>
                   </tr>
                 );
