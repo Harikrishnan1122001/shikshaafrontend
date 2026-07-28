@@ -1,42 +1,32 @@
 import axios from "axios";
 
-const API_BASE = process.env.REACT_APP_API_URL || "https://shikshaabackend.vercel.app/api";
+// In local development, use a relative path so requests go to the
+// CRA dev server (http://localhost:3000/api/...) and get proxied
+// server-side to the backend (see "proxy" in package.json). This
+// avoids the browser CORS check entirely, since the browser only
+// ever talks to localhost:3000 — the proxy hop happens outside the browser.
+//
+// In production (the built app), there is no dev-server proxy, so we
+// call the deployed backend directly. REACT_APP_API_URL can still
+// override either case if you need to point at a different backend.
+const isLocalDev = process.env.NODE_ENV === "development";
+const API_URL = isLocalDev
+  ? "/api"
+  : process.env.REACT_APP_API_URL || "https://shikshaabackend.vercel.app/api";
 
-const client = axios.create({ baseURL: API_BASE });
+const api = axios.create({
+  baseURL: API_URL,
+});
 
-export const StudentAPI = {
-  list: (params) => client.get("/students", { params }).then((r) => r.data),
-  get: (id) => client.get(`/students/${id}`).then((r) => r.data),
-  create: (data) => client.post("/students", data).then((r) => r.data),
-  update: (id, data) => client.put(`/students/${id}`, data).then((r) => r.data),
-  remove: (id) => client.delete(`/students/${id}`).then((r) => r.data),
-  stats: () => client.get("/students/stats/summary").then((r) => r.data),
-  addPayment: (id, data) =>
-    client.post(`/students/${id}/payments`, data).then((r) => r.data),
-  removePayment: (id, paymentId) =>
-    client.delete(`/students/${id}/payments/${paymentId}`).then((r) => r.data),
+export const downloadStudentsExcel = async () => {
+  const response = await axios.get(`${API_URL}/export/students`, { responseType: "blob" });
+  const url = window.URL.createObjectURL(new Blob([response.data]));
+  const link = document.createElement("a");
+  link.href = url;
+  link.setAttribute("download", `shikshaa-students-${Date.now()}.xlsx`);
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
 };
 
-export const StaffAPI = {
-  list: () => client.get("/staff").then((r) => r.data),
-  create: (data) => client.post("/staff", data).then((r) => r.data),
-  update: (id, data) => client.put(`/staff/${id}`, data).then((r) => r.data),
-  remove: (id) => client.delete(`/staff/${id}`).then((r) => r.data),
-};
-
-export const OtpAPI = {
-  send: (phone) => client.post("/otp/send", { phone }).then((r) => r.data),
-  verify: (phone, otp) => client.post("/otp/verify", { phone, otp }).then((r) => r.data),
-};
-
-export const PaymentAPI = {
-  list: (params) => client.get("/payments", { params }).then((r) => r.data),
-  summary: (params) => client.get("/payments/summary", { params }).then((r) => r.data),
-};
-
-export function exportStudentsUrl(params) {
-  const query = new URLSearchParams(params || {}).toString();
-  return `${API_BASE}/export/students${query ? `?${query}` : ""}`;
-}
-
-export default client;
+export default api;
